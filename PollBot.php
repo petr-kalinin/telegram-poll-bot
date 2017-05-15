@@ -112,6 +112,19 @@ class PollBotChat extends TelegramBotChat {
     $this->sendResults();
   }
 
+  public function command_reset($params, $message) {
+    if (!$this->isGroup) {
+      return $this->sendGroupOnly();
+    }
+    if (!$this->curPoll) {
+      return $this->sendNoPoll();
+    }
+
+    $this->dbResetPoll();
+    $this->sendResults();
+    $this->sendPoll(true);
+  }
+
   public function command_endpoll($params, $message) {
     if (!$this->isGroup) {
       return $this->sendGroupOnly();
@@ -352,12 +365,10 @@ class PollBotChat extends TelegramBotChat {
         $text = "☝️{$name} changed the vote to '{$option}'.";
       }
     }
-    $text .= "\n/results - show results\n/poll - repeat the question";
+    $text .= "\n/results - show results\n/poll - repeat the question\n/reset - reset poll";
 
     $this->apiSendMessage($text, $message_params);
   }
-
-
 
   protected function getPollText($poll, $plain = false) {
     $text = $poll['title']."\n";
@@ -496,14 +507,14 @@ class PollBotChat extends TelegramBotChat {
     } else {
       $text = "This bot can create simple polls. You can create a poll and share it to a group.";
     }
-    $text .= "\n\n/newpoll - create a poll\n/results - see how the poll is going\n/poll - repeat the question\n/endpoll - close poll and show final results";
+    $text .= "\n\n/newpoll - create a poll\n/results - see how the poll is going\n/poll - repeat the question\n/endpoll - close poll and show final results\n/reset - reset poll";
     $this->apiSendMessage($text);
   }
 
   public function sendPoll($resend = false, $message_id = 0) {
     $text = $this->getPollText($this->curPoll);
     if ($this->isGroup) {
-      $text .= "\n\n/results - show results\n/endpoll - close poll";
+      $text .= "\n\n/results - show results\n/endpoll - close poll\n/reset - reset poll";
     }
     $message_params = array(
       'reply_markup' => array(
@@ -574,7 +585,7 @@ class PollBotChat extends TelegramBotChat {
       $text .= " {$result['procent']}%";
     }
     if (!$final) {
-      $text .= "\n\n/poll - repeat question\n/endpoll - close poll";
+      $text .= "\n\n/poll - repeat question\n/endpoll - close poll\n/reset - reset the poll";
     }
 
     $message_params = array();
@@ -586,4 +597,15 @@ class PollBotChat extends TelegramBotChat {
 
     $this->apiSendMessage($text, $message_params);
   }
+
+  protected function dbResetPoll() {
+    $keys = array(
+      'c'.$this->chatId.':members',
+    );
+    for ($i = 0; $i < self::$optionsLimit; $i++) {
+      $keys[] = 'c'.$this->chatId.':o'.$i.':members';
+    }
+    $this->redis->delete($keys);
+  }
+
 }
