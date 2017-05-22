@@ -31,6 +31,7 @@ class PollBotChat extends TelegramBotChat {
 
   protected $curPoll = false;
   protected static $optionsLimit = 10;
+  protected $lastResultsId = 0;
 
   public function __construct($core, $chat_id) {
     parent::__construct($core, $chat_id);
@@ -370,6 +371,9 @@ class PollBotChat extends TelegramBotChat {
     if ($message_id != 0) {
         $this->apiDeleteMessage($message_id);
     }
+    if ($this->lastResultsId) {
+        $this->sendResults(false, true);
+    }
   }
 
   protected function getPollText($poll, $plain = false) {
@@ -545,7 +549,7 @@ class PollBotChat extends TelegramBotChat {
     }
   }
 
-  protected function sendResults($final = false) {
+  protected function sendResults($final = false, $update = false) {
     $results = array();
     $total_value = 0;
     $max_value = 0;
@@ -589,6 +593,9 @@ class PollBotChat extends TelegramBotChat {
     if (!$final) {
       $text .= "\n\n/poll - repeat question\n/results - repeat results\n/endpoll - close poll\n/reset - reset the poll";
     }
+    if ($update) {
+      $text .= "\n(Results have been updated after this message was sent)";
+    }
 
     $message_params = array();
     if ($final) {
@@ -596,8 +603,13 @@ class PollBotChat extends TelegramBotChat {
         'hide_keyboard' => true,
       );
     }
-
-    $this->apiSendMessage($text, $message_params);
+    
+    if (!$update) {
+        $result = $this->apiSendMessage($text, $message_params);
+        $this->lastResultsId = $result["result"]["message_id"];
+    } else {
+        $this->apiEditMessageText($this->lastResultsId, $text, $message_params);
+    }
   }
 
   protected function dbResetPoll() {

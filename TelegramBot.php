@@ -256,6 +256,15 @@ abstract class TelegramBotChat {
     return $this->core->request('sendMessage', $params);
   }
 
+  protected function apiEditMessageText($message_id, $text, $params = array()) {
+    $params += array(
+      'message_id' => $message_id,
+      'chat_id' => $this->chatId,
+      'text' => $text,
+    );
+    return $this->core->request('editMessageText', $params);
+  }
+
   protected function apiDeleteMessage($message_id) {
     $params = array(
       'chat_id' => $this->chatId,
