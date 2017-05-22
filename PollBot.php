@@ -350,7 +350,6 @@ class PollBotChat extends TelegramBotChat {
       $name = ' @'.$voter['username'];
     } else {
       $name = $voter['first_name'];
-      $message_params['reply_to_message_id'] = $message_id;
     }
 
     $option = $this->curPoll['options'][$option_id];
@@ -365,9 +364,12 @@ class PollBotChat extends TelegramBotChat {
         $text = "☝️{$name} changed the vote to '{$option}'.";
       }
     }
-    $text .= "\n/results - show results\n/poll - repeat the question\n/reset - reset poll";
+    //$text .= "\n/results - show results\n/poll - repeat the question\n/reset - reset poll";
 
     $this->apiSendMessage($text, $message_params);
+    if ($message_id != 0) {
+        $this->apiDeleteMessage($message_id);
+    }
   }
 
   protected function getPollText($poll, $plain = false) {
@@ -552,7 +554,7 @@ class PollBotChat extends TelegramBotChat {
       $total_value += $value;
       $max_value = max($max_value, $value);
       $results[] = array(
-        'label' => $option,
+        'label' => "/" . ($i + 1) . ". $option",
         'value' => $value,
       );
     }
@@ -585,7 +587,7 @@ class PollBotChat extends TelegramBotChat {
       $text .= " {$result['procent']}%";
     }
     if (!$final) {
-      $text .= "\n\n/poll - repeat question\n/endpoll - close poll\n/reset - reset the poll";
+      $text .= "\n\n/poll - repeat question\n/results - repeat results\n/endpoll - close poll\n/reset - reset the poll";
     }
 
     $message_params = array();

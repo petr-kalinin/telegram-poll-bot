@@ -91,7 +91,7 @@ abstract class TelegramBotCore {
     $query_string = implode('&', $params_arr);
 
     $url = $this->apiUrl.'/'.$method;
-
+    
     if ($options['http_method'] === 'POST') {
       curl_setopt($this->handle, CURLOPT_SAFE_UPLOAD, false);
       curl_setopt($this->handle, CURLOPT_POST, true);
@@ -121,7 +121,7 @@ abstract class TelegramBotCore {
         $this->netDelay *= 2;
       }
     }
-
+    
     $response = json_decode($response_str, true);
 
     return $response;
@@ -254,6 +254,14 @@ abstract class TelegramBotChat {
       'text' => $text,
     );
     return $this->core->request('sendMessage', $params);
+  }
+
+  protected function apiDeleteMessage($message_id) {
+    $params = array(
+      'chat_id' => $this->chatId,
+      'message_id' => $message_id,
+    );
+    return $this->core->request('deleteMessage', $params);
   }
 
 }
