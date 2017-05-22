@@ -122,8 +122,8 @@ class PollBotChat extends TelegramBotChat {
     }
 
     $this->dbResetPoll();
-    $this->sendResults();
     $this->sendPoll(true);
+    $this->sendResults();
   }
 
   public function command_endpoll($params, $message) {
@@ -338,6 +338,9 @@ class PollBotChat extends TelegramBotChat {
   }
 
   protected function pollNewVote($voter, $option_id, $message_id = 0) {
+    if (!$this->lastResultsId) {
+        $this->sendResults();
+    }
     $chat_id = $this->chatId;
     $voter_id = $voter['id'];
 
