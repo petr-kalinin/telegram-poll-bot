@@ -123,7 +123,7 @@ class PollBotChat extends TelegramBotChat {
 
     $this->dbResetPoll();
     $this->sendPoll(true);
-    $this->sendResults();
+    //$this->sendResults();
   }
 
   public function command_endpoll($params, $message) {
@@ -338,9 +338,11 @@ class PollBotChat extends TelegramBotChat {
   }
 
   protected function pollNewVote($voter, $option_id, $message_id = 0) {
+    /*
     if (!$this->lastResultsId) {
         $this->sendResults();
     }
+    */
     $chat_id = $this->chatId;
     $voter_id = $voter['id'];
 
@@ -359,14 +361,18 @@ class PollBotChat extends TelegramBotChat {
     $option = $this->curPoll['options'][$option_id];
     $already_voted = $this->dbCheckOption($voter_id, $option_id);
     if ($already_voted) {
-      $text = "☝️{$name} is still for '{$option}'.";
+      //$text = "☝️{$name} is still for '{$option}'.";
+      $text = "☝️{$name} has voted";
     } else {
       $new_vote = $this->dbSelectOption($voter_id, $option_id);
+      $text = "☝️{$name} has voted";
+      /*
       if ($new_vote) {
         $text = "☝️{$name} voted for '{$option}'.";
       } else {
         $text = "☝️{$name} changed the vote to '{$option}'.";
       }
+      */
     }
     //$text .= "\n/results - show results\n/poll - repeat the question\n/reset - reset poll";
 
